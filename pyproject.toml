@@ -4,7 +4,33 @@ version = "0.1.0"
 description = "AI-powered scholarship search agent with Hedera blockchain verification"
 readme = "README.md"
 requires-python = ">=3.13"
-dependencies = []
+dependencies = [
+    # FastAPI and server
+    "fastapi>=0.115.0",
+    "uvicorn[standard]>=0.32.0",
+    "python-multipart>=0.0.17",
+    
+    # AI/LLM
+    "anthropic>=0.39.0",
+    "langgraph>=0.2.0",
+    "langchain-anthropic>=0.3.0",
+    "tavily-python>=0.5.0",
+    
+    # Document parsing
+    "pdfminer.six>=20231228",
+    "python-docx>=1.1.0",
+    
+    # Data processing
+    "pandas>=2.2.0",
+    "openpyxl>=3.1.0",
+    
+    # Configuration
+    "pydantic>=2.10.0",
+    "pydantic-settings>=2.6.0",
+    
+    # Hedera (optional - comment out if not needed)
+    # "hedera-sdk-py>=2.0.0",
+]
 
 [project.scripts]
 scholar-agent = "scholar_agent.main:main"

@@ -647,3 +647,11 @@ $RECYCLE.BIN/
 
 # File test to run unit function
 test.py
+
+# Node.js
+node_modules/
+frontend/node_modules/
+.next/
+frontend/.next/
+out/
+frontend/out/
