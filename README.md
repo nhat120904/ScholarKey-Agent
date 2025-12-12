@@ -15,8 +15,8 @@ ScholarKey is an autonomous AI agent system that simplifies the study abroad app
 
 ```bash
 # Clone the repository
-git clone https://github.com/nhat120904/Scholarshit-Agent.git
-cd ScholarAgent
+git clone https://github.com/nhat120904/ScholarKey-Agent
+cd ScholarKey-Agent
 
 # Install development dependencies
 make dev

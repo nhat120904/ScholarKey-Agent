@@ -647,3 +647,8 @@ $RECYCLE.BIN/
 
 # File test to run unit function
 test.py
+
+
+*_cache/
+.venv/
+.vscode/
