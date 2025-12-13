@@ -2,7 +2,12 @@
 
 > Your Verifiable, AI-Powered Pathway to Global Education.
 
-ScholarKey is an autonomous AI agent system that simplifies the study abroad application process. It analyzes a user's academic profile (CV, GPA, Skills), autonomously searches for matching scholarships in real-time, and generates a structured Excel plan with Hedera blockchain verification.
+ScholarKey is an autonomous multi-agent AI system that simplifies the study abroad application process. It analyzes a user's academic profile (CV, GPA, Skills), autonomously searches for matching scholarships in real-time, and generates a structured Excel plan with Hedera blockchain verification.
+
+![ScholarKey Demo](https://img.shields.io/badge/Demo-Live-brightgreen)
+![Python](https://img.shields.io/badge/Python-3.13+-blue)
+![Next.js](https://img.shields.io/badge/Next.js-14-black)
+![License](https://img.shields.io/badge/License-MIT-yellow)
 
 ## ✨ Features
 
@@ -11,27 +16,63 @@ ScholarKey is an autonomous AI agent system that simplifies the study abroad app
 - **📊 Match Scoring**: Get compatibility scores for each scholarship based on your profile
 - **📝 Excel Export**: Download a structured plan with all scholarships, requirements, and deadlines
 - **🔗 Blockchain Verification**: Immutable "Proof of Profile" using Hedera Consensus Service
-- **💬 Chat Interface**: Update your profile through natural language conversation
+- **💬 Multi-Agent Chat Interface**: Intelligent conversation with specialized agents (Profile, Search, Plan)
+- **🎨 Modern UI**: Beautiful, responsive Next.js frontend with dark/light mode
+
+## 🏗️ Architecture
+
+ScholarKey uses a **multi-agent hand-off architecture** powered by LangGraph:
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│                    Supervisor Agent                          │
+│            (Intent Classification & Routing)                 │
+└─────────────────┬───────────────┬───────────────┬───────────┘
+                  │               │               │
+                  ▼               ▼               ▼
+         ┌───────────────┐ ┌───────────────┐ ┌───────────────┐
+         │ Profile Agent │ │ Search Agent  │ │  Plan Agent   │
+         │ (CV Analysis) │ │ (Scholarships)│ │ (Application) │
+         └───────────────┘ └───────────────┘ └───────────────┘
+```
+
+- **Supervisor Agent**: Routes user queries to appropriate specialized agents
+- **Profile Agent**: Parses CVs, extracts academic data, and enriches profiles
+- **Search Agent**: Finds scholarships and programs matching user qualifications
+- **Plan Agent**: Creates personalized application timelines and exports
 
 ## 🚀 Quick Start
 
 ### Prerequisites
 
 - Python 3.13+
+- Node.js 18+ (for frontend)
 - [uv](https://docs.astral.sh/uv/) - Fast Python package manager
 
-### Installation
+### Backend Installation
 
 ```bash
 # Clone the repository
 git clone https://github.com/nhat120904/ScholarKey-Agent.git
-cd ScholarAgent
+cd ScholarKey-Agent
 
 # Install dependencies
 uv sync
 
-# Or install dev dependencies
+# Or install with dev dependencies
 make dev
+```
+
+### Frontend Installation
+
+```bash
+cd frontend
+
+# Install dependencies
+npm install
+
+# Start development server
+npm run dev
 ```
 
 ### Environment Setup
@@ -47,17 +88,19 @@ cp .env.example .env
 # - HEDERA_PRIVATE_KEY (optional, for blockchain verification)
 ```
 
-### Running the Server
+### Running the Application
 
 ```bash
-# Start the FastAPI server
+# Terminal 1: Start the FastAPI backend
 make run
 
-# Or manually
-uv run scholar-agent
+# Terminal 2: Start the Next.js frontend
+cd frontend && npm run dev
 ```
 
-The API will be available at `http://localhost:8000`. Visit `http://localhost:8000/docs` for the interactive API documentation.
+- **Backend API**: `http://localhost:8000`
+- **API Documentation**: `http://localhost:8000/docs`
+- **Frontend**: `http://localhost:3000`
 
 ## 📚 API Endpoints
 
@@ -66,23 +109,24 @@ The API will be available at `http://localhost:8000`. Visit `http://localhost:80
 | Endpoint | Method | Description |
 |----------|--------|-------------|
 | `/api/upload-profile` | POST | Upload CV and create profile |
-| `/api/chat` | POST | Update profile via chat |
+| `/api/chat` | POST | Multi-agent chat for profile updates |
+
+### Session Management
+
+| Endpoint | Method | Description |
+|----------|--------|-------------|
+| `/api/sessions` | GET | List all chat sessions |
+| `/api/sessions/{id}` | GET | Get session details |
+| `/api/sessions/{id}` | PUT | Update session (rename) |
+| `/api/sessions/{id}` | DELETE | Delete session |
+| `/api/sessions/{id}/history` | GET | Get conversation history |
 
 ### Scholarship Search
 
 | Endpoint | Method | Description |
 |----------|--------|-------------|
 | `/api/search-scholarships` | POST | Search scholarships by profile |
-| `/api/search-by-program` | POST | Find scholarships for specific program |
-| `/api/search-programs-by-scholarship` | POST | Find programs matching scholarships |
 | `/api/crawl-scholarship` | POST | Crawl scholarship URL for details |
-
-### Schools & Programs
-
-| Endpoint | Method | Description |
-|----------|--------|-------------|
-| `/api/search-schools` | GET | Search schools by country |
-| `/api/search-programs` | GET | Search programs |
 
 ### Export
 
@@ -103,7 +147,9 @@ The API will be available at `http://localhost:8000`. Visit `http://localhost:80
 
 ```bash
 # Install dependencies
+make install       # Install production dependencies
 make dev           # Install dev dependencies + setup pre-commit
+make setup         # Full setup for new developers
 
 # Code Quality
 make lint          # Run ruff linter
@@ -128,7 +174,7 @@ make run           # Run the application
 ### Project Structure
 
 ```
-ScholarAgent/
+ScholarKey-Agent/
 ├── src/
 │   └── scholar_agent/
 │       ├── __init__.py
@@ -137,44 +183,64 @@ ScholarAgent/
 │       ├── models.py            # Pydantic data models
 │       ├── py.typed             # PEP 561 marker for type hints
 │       ├── api/
-│       │   ├── __init__.py
 │       │   └── routes.py        # FastAPI routes
 │       ├── agents/
-│       │   ├── __init__.py
-│       │   ├── profile_agent.py      # LangGraph profile agent
-│       │   └── scholarship_agent.py  # LangGraph search agent
+│       │   ├── supervisor.py    # Supervisor agent (orchestrator)
+│       │   ├── profile_agent.py # Profile analysis agent
+│       │   ├── scholarship_agent.py  # Scholarship search agent
+│       │   ├── state.py         # Shared agent states
+│       │   └── llm.py           # LLM configuration
 │       └── services/
-│           ├── __init__.py
 │           ├── cv_parser.py     # CV parsing with Claude
 │           ├── hedera.py        # Hedera blockchain integration
 │           ├── scholarship_search.py  # Tavily search service
+│           ├── session_manager.py     # Session management
 │           └── excel_export.py  # Excel export service
+├── frontend/
+│   ├── src/
+│   │   ├── app/                 # Next.js app router pages
+│   │   ├── components/          # React components
+│   │   │   ├── chat/            # Chat interface components
+│   │   │   ├── layout/          # Layout components
+│   │   │   ├── steps/           # Onboarding step components
+│   │   │   └── ui/              # Reusable UI components
+│   │   ├── hooks/               # Custom React hooks
+│   │   ├── lib/                 # Utilities and API client
+│   │   ├── stores/              # Zustand state stores
+│   │   └── types/               # TypeScript types
+│   ├── package.json
+│   └── tailwind.config.js
 ├── tests/
-│   ├── __init__.py
 │   └── test_main.py
-├── .env.example
-├── .gitignore
-├── .pre-commit-config.yaml
+├── plans/                       # Architecture documentation
+├── exports/                     # Generated Excel exports
 ├── Makefile
 ├── pyproject.toml
-├── project-requirement.md
 └── README.md
 ```
 
 ## 🔧 Technology Stack
 
 ### Backend
-- **FastAPI** - Modern, fast web framework for APIs
-- **LangGraph** - AI workflow orchestration
-- **Claude AI** - CV parsing and analysis
-- **Tavily** - AI-optimized web search
-- **Pandas** - Data processing and Excel generation
+- **[FastAPI](https://fastapi.tiangolo.com/)** - Modern, fast web framework for APIs
+- **[LangGraph](https://langchain-ai.github.io/langgraph/)** - Multi-agent AI workflow orchestration
+- **[Claude AI](https://anthropic.com/)** - CV parsing and intelligent conversations
+- **[Tavily](https://tavily.com/)** - AI-optimized web search
+- **[Pandas](https://pandas.pydata.org/)** - Data processing and Excel generation
+
+### Frontend
+- **[Next.js 14](https://nextjs.org/)** - React framework with App Router
+- **[Tailwind CSS](https://tailwindcss.com/)** - Utility-first CSS framework
+- **[Radix UI](https://radix-ui.com/)** - Accessible UI primitives
+- **[Zustand](https://zustand-demo.pmnd.rs/)** - Lightweight state management
+- **[React Query](https://tanstack.com/query)** - Data fetching and caching
+- **[Framer Motion](https://www.framer.com/motion/)** - Animations
 
 ### Blockchain
-- **Hedera Consensus Service** - Immutable verification layer
+- **[Hedera Consensus Service](https://hedera.com/)** - Immutable verification layer
 
 ### Code Quality
-- **[Ruff](https://docs.astral.sh/ruff/)** - Linting and formatting
+- **[Ruff](https://docs.astral.sh/ruff/)** - Fast Python linting and formatting
 - **[Mypy](https://mypy.readthedocs.io/)** - Static type checking
 - **[Pytest](https://pytest.org/)** - Testing framework
 - **[Pre-commit](https://pre-commit.com/)** - Git hooks for code quality
@@ -213,6 +279,22 @@ search_response = httpx.post(
 scholarships = search_response.json()["scholarships"]
 ```
 
+### Chat with Multi-Agent System
+
+```python
+# Start a conversation
+chat_response = httpx.post(
+    "http://localhost:8000/api/chat",
+    json={
+        "message": "I want to find scholarships for AI research in Germany",
+        "session_id": "my-session-id"
+    }
+)
+
+print(chat_response.json()["message"])
+# The supervisor will route this to the Search Agent
+```
+
 ### Export to Excel
 
 ```python
@@ -231,6 +313,22 @@ with open("scholarship_plan.xlsx", "wb") as f:
     f.write(export_response.content)
 ```
 
+## 🤝 Contributing
+
+1. Fork the repository
+2. Create your feature branch (`git checkout -b feature/amazing-feature`)
+3. Run code quality checks (`make check`)
+4. Commit your changes (`git commit -m 'Add amazing feature'`)
+5. Push to the branch (`git push origin feature/amazing-feature`)
+6. Open a Pull Request
+
 ## 📝 License
 
-MIT License
+MIT License - see [LICENSE](LICENSE) for details.
+
+## 🙏 Acknowledgments
+
+- [Anthropic](https://anthropic.com/) for Claude AI
+- [LangChain](https://langchain.com/) for LangGraph
+- [Hedera](https://hedera.com/) for blockchain infrastructure
+- [Tavily](https://tavily.com/) for AI-powered search
