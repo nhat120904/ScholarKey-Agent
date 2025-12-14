@@ -1,9 +1,22 @@
 "use client";
 
 import { useState } from "react";
-import { Globe, GraduationCap, BookOpen, Search, ArrowRight, ArrowLeft } from "lucide-react";
+import {
+  Globe,
+  GraduationCap,
+  BookOpen,
+  Search,
+  ArrowRight,
+  ArrowLeft,
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import {
@@ -68,7 +81,11 @@ const FIELDS = [
   "Environmental Studies",
 ];
 
-export function PreferencesStep({ profile, onBack, onSearch }: PreferencesStepProps) {
+export function PreferencesStep({
+  profile,
+  onBack,
+  onSearch,
+}: PreferencesStepProps) {
   const [preferences, setPreferences] = useState<SearchPreferences>({
     targetCountry: profile.target_country || "",
     studyLevel: profile.level || "master",
@@ -83,7 +100,10 @@ export function PreferencesStep({ profile, onBack, onSearch }: PreferencesStepPr
     setPreferences((prev) => ({ ...prev, [field]: value }));
   };
 
-  const isValid = preferences.targetCountry && preferences.studyLevel && preferences.desiredField;
+  const isValid =
+    preferences.targetCountry &&
+    preferences.studyLevel &&
+    preferences.desiredField;
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -95,7 +115,9 @@ export function PreferencesStep({ profile, onBack, onSearch }: PreferencesStepPr
   return (
     <div className="max-w-3xl mx-auto space-y-6">
       <div className="text-center space-y-2">
-        <h2 className="text-3xl font-bold text-gray-900">Set Your Search Preferences</h2>
+        <h2 className="text-3xl font-bold text-gray-900">
+          Set Your Search Preferences
+        </h2>
         <p className="text-gray-600">
           Tell us more about your study goals to find the best matches
         </p>
@@ -118,11 +140,15 @@ export function PreferencesStep({ profile, onBack, onSearch }: PreferencesStepPr
             </div>
             <div>
               <span className="text-gray-500">Skills</span>
-              <p className="font-medium">{profile.skills?.slice(0, 2).join(", ") || "N/A"}</p>
+              <p className="font-medium">
+                {profile.skills?.slice(0, 2).join(", ") || "N/A"}
+              </p>
             </div>
             <div>
               <span className="text-gray-500">Experience</span>
-              <p className="font-medium">{profile.work_experience_years || 0} years</p>
+              <p className="font-medium">
+                {profile.work_experience_years || 0} years
+              </p>
             </div>
           </div>
         </CardContent>
@@ -149,16 +175,18 @@ export function PreferencesStep({ profile, onBack, onSearch }: PreferencesStepPr
                   "p-4 rounded-lg border-2 text-left transition-all",
                   preferences.searchMode === "by_scholarship"
                     ? "border-blue-500 bg-blue-50"
-                    : "border-gray-200 hover:border-gray-300"
+                    : "border-gray-200 hover:border-gray-300",
                 )}
               >
                 <div className="flex items-center gap-3">
-                  <div className={cn(
-                    "p-2 rounded-full",
-                    preferences.searchMode === "by_scholarship"
-                      ? "bg-blue-500 text-white"
-                      : "bg-gray-100 text-gray-500"
-                  )}>
+                  <div
+                    className={cn(
+                      "p-2 rounded-full",
+                      preferences.searchMode === "by_scholarship"
+                        ? "bg-blue-500 text-white"
+                        : "bg-gray-100 text-gray-500",
+                    )}
+                  >
                     <GraduationCap className="h-5 w-5" />
                   </div>
                   <div>
@@ -177,16 +205,18 @@ export function PreferencesStep({ profile, onBack, onSearch }: PreferencesStepPr
                   "p-4 rounded-lg border-2 text-left transition-all",
                   preferences.searchMode === "by_program"
                     ? "border-purple-500 bg-purple-50"
-                    : "border-gray-200 hover:border-gray-300"
+                    : "border-gray-200 hover:border-gray-300",
                 )}
               >
                 <div className="flex items-center gap-3">
-                  <div className={cn(
-                    "p-2 rounded-full",
-                    preferences.searchMode === "by_program"
-                      ? "bg-purple-500 text-white"
-                      : "bg-gray-100 text-gray-500"
-                  )}>
+                  <div
+                    className={cn(
+                      "p-2 rounded-full",
+                      preferences.searchMode === "by_program"
+                        ? "bg-purple-500 text-white"
+                        : "bg-gray-100 text-gray-500",
+                    )}
+                  >
                     <BookOpen className="h-5 w-5" />
                   </div>
                   <div>
@@ -207,7 +237,8 @@ export function PreferencesStep({ profile, onBack, onSearch }: PreferencesStepPr
             <CardHeader>
               <CardTitle className="text-purple-900">Target Program</CardTitle>
               <CardDescription>
-                Specify the school and program you&apos;re interested in (optional)
+                Specify the school and program you&apos;re interested in
+                (optional)
               </CardDescription>
             </CardHeader>
             <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -313,7 +344,12 @@ export function PreferencesStep({ profile, onBack, onSearch }: PreferencesStepPr
 
         {/* Action Buttons */}
         <div className="flex justify-between">
-          <Button type="button" variant="outline" onClick={onBack} className="gap-2">
+          <Button
+            type="button"
+            variant="outline"
+            onClick={onBack}
+            className="gap-2"
+          >
             <ArrowLeft className="h-4 w-4" />
             Back
           </Button>

@@ -18,7 +18,9 @@ export function Header({ onStartOver, showStartOver }: HeaderProps) {
           </div>
           <div>
             <h1 className="text-xl font-bold text-gray-900">ScholarKey AI</h1>
-            <p className="text-xs text-gray-500">Your Pathway to Global Education</p>
+            <p className="text-xs text-gray-500">
+              Your Pathway to Global Education
+            </p>
           </div>
         </div>
 

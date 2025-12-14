@@ -1,141 +1,262 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { Header } from "@/components/layout/header";
+import { useCallback, useState, useRef, useEffect } from "react";
+import { useRouter } from "next/navigation";
+import { motion, AnimatePresence } from "framer-motion";
 import {
-  OnboardingStep,
-  PreferencesStep,
-  ProcessingStep,
-  ResultsDashboard,
-} from "@/components/steps";
-import type { SearchPreferences } from "@/components/steps";
-import { api } from "@/lib/api";
-import type { StudentProfile, SearchResults, HederaResponse } from "@/types";
+  GraduationCap,
+  Send,
+  Sparkles,
+  Globe,
+  Search,
+  FileText,
+  MessageCircle,
+  Upload,
+  ArrowRight,
+} from "lucide-react";
+import { MainNavbar } from "@/components/layout/main-navbar";
+import { Button } from "@/components/ui/button";
+import { useSessionStore } from "@/stores/sessionStore";
+import { useChatStore } from "@/stores/chatStore";
+import { cn } from "@/lib/utils";
 
-type Step = "onboarding" | "preferences" | "processing" | "results";
+const FEATURES = [
+  {
+    icon: Search,
+    title: "Smart Scholarship Search",
+    description: "AI-powered search across thousands of scholarships worldwide",
+  },
+  {
+    icon: FileText,
+    title: "CV Analysis",
+    description:
+      "Upload your CV and let our AI analyze your profile automatically",
+  },
+  {
+    icon: Globe,
+    title: "Global Coverage",
+    description: "Find opportunities in any country for any field of study",
+  },
+  {
+    icon: Sparkles,
+    title: "Personalized Matches",
+    description: "Get scholarship recommendations tailored to your profile",
+  },
+];
+
+const EXAMPLE_PROMPTS = [
+  "Find scholarships for computer science students in Germany",
+  "What scholarships are available for PhD students in the US?",
+  "Show me fully funded masters programs in Europe",
+  "Find scholarships for international students with GPA above 3.5",
+];
 
 export default function Home() {
-  const [currentStep, setCurrentStep] = useState<Step>("onboarding");
-  const [profile, setProfile] = useState<StudentProfile | null>(null);
-  const [hederaInfo, setHederaInfo] = useState<HederaResponse | null>(null);
-  const [searchPreferences, setSearchPreferences] = useState<SearchPreferences | null>(null);
-  const [searchResults, setSearchResults] = useState<SearchResults | null>(null);
+  const router = useRouter();
+  const [inputValue, setInputValue] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
+  const inputRef = useRef<HTMLTextAreaElement>(null);
 
-  const handleProfileComplete = (newProfile: StudentProfile, hedera: HederaResponse | null) => {
-    setProfile(newProfile);
-    setHederaInfo(hedera);
-    setCurrentStep("preferences");
-  };
+  const createNewSession = useSessionStore((state) => state.createNewSession);
+  const setCurrentSession = useSessionStore((state) => state.setCurrentSession);
+  const setSessionId = useChatStore((state) => state.setSessionId);
 
-  const handlePreferencesSubmit = async (preferences: SearchPreferences) => {
-    setSearchPreferences(preferences);
-    setCurrentStep("processing");
+  // Auto-resize textarea
+  useEffect(() => {
+    if (inputRef.current) {
+      inputRef.current.style.height = "auto";
+      inputRef.current.style.height = `${Math.min(inputRef.current.scrollHeight, 200)}px`;
+    }
+  }, [inputValue]);
 
-    // Update profile with preferences
-    if (profile) {
-      const updatedProfile: StudentProfile = {
-        ...profile,
-        target_country: preferences.targetCountry,
-        level: preferences.studyLevel,
-        major: preferences.major,
-        desired_field: preferences.desiredField,
-      };
-      setProfile(updatedProfile);
+  const handleSubmit = useCallback(
+    async (message?: string) => {
+      const text = message || inputValue.trim();
+      if (!text || isLoading) return;
 
-      // Perform the search
+      setIsLoading(true);
       try {
-        const results = await api.searchScholarships({
-          profile: updatedProfile,
-          search_mode: preferences.searchMode,
-          school_name: preferences.schoolName,
-          program_name: preferences.programName,
-          min_match_score: 0,
-          include_partial_matches: true,
-        });
-        setSearchResults(results);
-        setCurrentStep("results");
+        // Create a new session
+        const sessionId = await createNewSession();
+        setCurrentSession(sessionId);
+        setSessionId(sessionId);
+
+        // Navigate to the chat session with the query
+        // The session page will handle sending the message
+        router.push(`/chat/${sessionId}?q=${encodeURIComponent(text)}`);
       } catch (error) {
-        console.error("Search failed:", error);
-        // Show error and go back to preferences
-        setCurrentStep("preferences");
+        console.error("Failed to start chat:", error);
+        setIsLoading(false);
       }
+    },
+    [
+      inputValue,
+      isLoading,
+      createNewSession,
+      setCurrentSession,
+      setSessionId,
+      router,
+    ],
+  );
+
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === "Enter" && !e.shiftKey) {
+      e.preventDefault();
+      handleSubmit();
     }
   };
 
-  const handleStartOver = () => {
-    setCurrentStep("onboarding");
-    setProfile(null);
-    setHederaInfo(null);
-    setSearchPreferences(null);
-    setSearchResults(null);
-  };
-
   return (
-    <main className="min-h-screen bg-gradient-to-b from-blue-50 to-white">
-      <Header onStartOver={handleStartOver} showStartOver={currentStep !== "onboarding"} />
-      
-      <div className="container mx-auto px-4 py-8">
-        {/* Progress Indicator */}
-        <div className="mb-8">
-          <div className="flex items-center justify-center gap-2">
-            {["onboarding", "preferences", "processing", "results"].map((step, index) => (
-              <div key={step} className="flex items-center">
-                <div
-                  className={`w-10 h-10 rounded-full flex items-center justify-center text-sm font-medium transition-colors ${
-                    currentStep === step
-                      ? "bg-blue-600 text-white"
-                      : index < ["onboarding", "preferences", "processing", "results"].indexOf(currentStep)
-                      ? "bg-green-500 text-white"
-                      : "bg-gray-200 text-gray-600"
-                  }`}
-                >
-                  {index + 1}
-                </div>
-                {index < 3 && (
-                  <div
-                    className={`w-16 h-1 mx-2 ${
-                      index < ["onboarding", "preferences", "processing", "results"].indexOf(currentStep)
-                        ? "bg-green-500"
-                        : "bg-gray-200"
-                    }`}
-                  />
-                )}
+    <div className="flex flex-col min-h-screen bg-background">
+      <MainNavbar />
+
+      <main className="flex-1 flex flex-col">
+        {/* Hero Section */}
+        <div className="flex-1 flex flex-col items-center justify-center px-4 py-8">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5 }}
+            className="text-center max-w-3xl mx-auto mb-8"
+          >
+            <div className="flex items-center justify-center gap-3 mb-4">
+              <div className="p-3 rounded-2xl bg-primary/10">
+                <GraduationCap className="h-10 w-10 text-primary" />
               </div>
+            </div>
+            <h1 className="text-4xl sm:text-5xl font-bold tracking-tight mb-4">
+              Find Your Perfect{" "}
+              <span className="text-primary">Scholarship</span>
+            </h1>
+            <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
+              ScholarKey uses AI to help you discover scholarships that match
+              your profile. Upload your CV, chat with our agents, and find
+              opportunities worldwide.
+            </p>
+          </motion.div>
+
+          {/* Chat Input Box */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5, delay: 0.1 }}
+            className="w-full max-w-2xl mx-auto mb-6"
+          >
+            <div className="relative bg-card border rounded-2xl shadow-lg overflow-hidden">
+              <div className="flex items-end p-3 gap-2">
+                <textarea
+                  ref={inputRef}
+                  value={inputValue}
+                  onChange={(e) => setInputValue(e.target.value)}
+                  onKeyDown={handleKeyDown}
+                  placeholder="Ask about scholarships, or describe your profile..."
+                  className={cn(
+                    "flex-1 resize-none bg-transparent border-0 outline-none",
+                    "text-base placeholder:text-muted-foreground",
+                    "min-h-[44px] max-h-[200px] py-3 px-2",
+                  )}
+                  rows={1}
+                  disabled={isLoading}
+                />
+                <Button
+                  onClick={() => handleSubmit()}
+                  disabled={!inputValue.trim() || isLoading}
+                  size="icon"
+                  className="h-10 w-10 rounded-xl shrink-0"
+                >
+                  {isLoading ? (
+                    <div className="h-4 w-4 border-2 border-background border-t-transparent rounded-full animate-spin" />
+                  ) : (
+                    <Send className="h-4 w-4" />
+                  )}
+                </Button>
+              </div>
+
+              {/* Quick actions */}
+              <div className="flex items-center gap-2 px-4 pb-3 border-t pt-3">
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="text-xs gap-1.5 h-8"
+                  onClick={() => router.push("/chat")}
+                >
+                  <Upload className="h-3.5 w-3.5" />
+                  Upload CV
+                </Button>
+                <div className="h-4 w-px bg-border" />
+                <span className="text-xs text-muted-foreground">
+                  Press Enter to send, Shift+Enter for new line
+                </span>
+              </div>
+            </div>
+          </motion.div>
+
+          {/* Example Prompts */}
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ duration: 0.5, delay: 0.2 }}
+            className="flex flex-wrap justify-center gap-2 max-w-2xl mx-auto mb-12"
+          >
+            {EXAMPLE_PROMPTS.map((prompt, index) => (
+              <button
+                key={index}
+                onClick={() => handleSubmit(prompt)}
+                disabled={isLoading}
+                className={cn(
+                  "px-3 py-1.5 text-sm rounded-full border",
+                  "bg-background hover:bg-accent hover:text-accent-foreground",
+                  "transition-colors cursor-pointer",
+                  "disabled:opacity-50 disabled:cursor-not-allowed",
+                )}
+              >
+                {prompt}
+              </button>
             ))}
-          </div>
-          <div className="flex justify-center gap-[4.5rem] mt-2 text-sm text-gray-600">
-            <span>Profile</span>
-            <span>Preferences</span>
-            <span>Search</span>
-            <span>Results</span>
+          </motion.div>
+        </div>
+
+        {/* Features Section */}
+        <div className="border-t bg-muted/30 py-12 px-4">
+          <div className="max-w-5xl mx-auto">
+            <h2 className="text-2xl font-semibold text-center mb-8">
+              How ScholarKey Works
+            </h2>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+              {FEATURES.map((feature, index) => (
+                <motion.div
+                  key={index}
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.5, delay: 0.1 * index }}
+                  className="flex flex-col items-center text-center p-4"
+                >
+                  <div className="p-3 rounded-xl bg-primary/10 mb-3">
+                    <feature.icon className="h-6 w-6 text-primary" />
+                  </div>
+                  <h3 className="font-medium mb-1">{feature.title}</h3>
+                  <p className="text-sm text-muted-foreground">
+                    {feature.description}
+                  </p>
+                </motion.div>
+              ))}
+            </div>
           </div>
         </div>
 
-        {/* Step Content */}
-        {currentStep === "onboarding" && (
-          <OnboardingStep onComplete={handleProfileComplete} />
-        )}
-
-        {currentStep === "preferences" && profile && (
-          <PreferencesStep
-            profile={profile}
-            onSearch={handlePreferencesSubmit}
-            onBack={() => setCurrentStep("onboarding")}
-          />
-        )}
-
-        {currentStep === "processing" && searchPreferences && (
-          <ProcessingStep searchMode={searchPreferences.searchMode} />
-        )}
-
-        {currentStep === "results" && searchResults && profile && (
-          <ResultsDashboard
-            results={searchResults}
-            profile={profile}
-            onStartOver={handleStartOver}
-          />
-        )}
-      </div>
-    </main>
+        {/* CTA Section */}
+        <div className="py-8 px-4 text-center">
+          <Button
+            size="lg"
+            onClick={() => router.push("/chat")}
+            className="gap-2"
+          >
+            <MessageCircle className="h-4 w-4" />
+            Start Chatting
+            <ArrowRight className="h-4 w-4" />
+          </Button>
+        </div>
+      </main>
+    </div>
   );
 }

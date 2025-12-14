@@ -1,8 +1,21 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Loader2, Sparkles, Search, BookOpen, CheckCircle, Globe } from "lucide-react";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Loader2,
+  Sparkles,
+  Search,
+  BookOpen,
+  CheckCircle,
+  Globe,
+} from "lucide-react";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { cn } from "@/lib/utils";
 
@@ -22,81 +35,83 @@ export function ProcessingStep({ searchMode }: ProcessingStepProps) {
   const [progress, setProgress] = useState(0);
   const [aiThoughts, setAiThoughts] = useState<string[]>([]);
 
-  const stages: ProcessingStage[] = searchMode === "by_scholarship"
-    ? [
-        {
-          id: "profile",
-          name: "Analyzing Profile",
-          description: "Understanding your qualifications and goals",
-          icon: <Sparkles className="h-5 w-5" />,
-        },
-        {
-          id: "search",
-          name: "Searching Scholarships",
-          description: "Finding matching scholarship opportunities",
-          icon: <Search className="h-5 w-5" />,
-        },
-        {
-          id: "programs",
-          name: "Matching Programs",
-          description: "Identifying eligible programs for each scholarship",
-          icon: <BookOpen className="h-5 w-5" />,
-        },
-        {
-          id: "ranking",
-          name: "Ranking Results",
-          description: "Calculating match scores and organizing results",
-          icon: <CheckCircle className="h-5 w-5" />,
-        },
-      ]
-    : [
-        {
-          id: "profile",
-          name: "Analyzing Profile",
-          description: "Understanding your qualifications and goals",
-          icon: <Sparkles className="h-5 w-5" />,
-        },
-        {
-          id: "programs",
-          name: "Searching Programs",
-          description: "Finding matching academic programs",
-          icon: <BookOpen className="h-5 w-5" />,
-        },
-        {
-          id: "scholarships",
-          name: "Finding Scholarships",
-          description: "Discovering funding opportunities for each program",
-          icon: <Search className="h-5 w-5" />,
-        },
-        {
-          id: "ranking",
-          name: "Ranking Results",
-          description: "Calculating match scores and organizing results",
-          icon: <CheckCircle className="h-5 w-5" />,
-        },
-      ];
+  const stages: ProcessingStage[] =
+    searchMode === "by_scholarship"
+      ? [
+          {
+            id: "profile",
+            name: "Analyzing Profile",
+            description: "Understanding your qualifications and goals",
+            icon: <Sparkles className="h-5 w-5" />,
+          },
+          {
+            id: "search",
+            name: "Searching Scholarships",
+            description: "Finding matching scholarship opportunities",
+            icon: <Search className="h-5 w-5" />,
+          },
+          {
+            id: "programs",
+            name: "Matching Programs",
+            description: "Identifying eligible programs for each scholarship",
+            icon: <BookOpen className="h-5 w-5" />,
+          },
+          {
+            id: "ranking",
+            name: "Ranking Results",
+            description: "Calculating match scores and organizing results",
+            icon: <CheckCircle className="h-5 w-5" />,
+          },
+        ]
+      : [
+          {
+            id: "profile",
+            name: "Analyzing Profile",
+            description: "Understanding your qualifications and goals",
+            icon: <Sparkles className="h-5 w-5" />,
+          },
+          {
+            id: "programs",
+            name: "Searching Programs",
+            description: "Finding matching academic programs",
+            icon: <BookOpen className="h-5 w-5" />,
+          },
+          {
+            id: "scholarships",
+            name: "Finding Scholarships",
+            description: "Discovering funding opportunities for each program",
+            icon: <Search className="h-5 w-5" />,
+          },
+          {
+            id: "ranking",
+            name: "Ranking Results",
+            description: "Calculating match scores and organizing results",
+            icon: <CheckCircle className="h-5 w-5" />,
+          },
+        ];
 
-  const aiMessages = searchMode === "by_scholarship"
-    ? [
-        "🔍 Analyzing your academic profile and qualifications...",
-        "📊 Cross-referencing with global scholarship databases...",
-        "🎓 Found several highly-matching scholarship opportunities!",
-        "📝 Checking eligibility criteria against your profile...",
-        "🌍 Searching for programs in your target country...",
-        "💡 Identifying programs with strong field alignment...",
-        "⚡ Calculating compatibility scores...",
-        "✨ Finalizing your personalized scholarship matches...",
-      ]
-    : [
-        "🔍 Analyzing your academic background and interests...",
-        "🏫 Searching top universities in your target region...",
-        "📚 Finding programs matching your field of study...",
-        "💡 Evaluating program curriculum alignment...",
-        "🎯 Cross-referencing with available scholarships...",
-        "💰 Checking funding opportunities for each program...",
-        "⚡ Calculating your match scores...",
-        "✨ Preparing your personalized program recommendations...",
-      ];
+  const aiMessages =
+    searchMode === "by_scholarship"
+      ? [
+          "🔍 Analyzing your academic profile and qualifications...",
+          "📊 Cross-referencing with global scholarship databases...",
+          "🎓 Found several highly-matching scholarship opportunities!",
+          "📝 Checking eligibility criteria against your profile...",
+          "🌍 Searching for programs in your target country...",
+          "💡 Identifying programs with strong field alignment...",
+          "⚡ Calculating compatibility scores...",
+          "✨ Finalizing your personalized scholarship matches...",
+        ]
+      : [
+          "🔍 Analyzing your academic background and interests...",
+          "🏫 Searching top universities in your target region...",
+          "📚 Finding programs matching your field of study...",
+          "💡 Evaluating program curriculum alignment...",
+          "🎯 Cross-referencing with available scholarships...",
+          "💰 Checking funding opportunities for each program...",
+          "⚡ Calculating your match scores...",
+          "✨ Preparing your personalized program recommendations...",
+        ];
 
   useEffect(() => {
     // Simulate progress through stages
@@ -143,7 +158,9 @@ export function ProcessingStep({ searchMode }: ProcessingStepProps) {
       <div className="text-center space-y-2">
         <div className="flex items-center justify-center gap-2">
           <Globe className="h-8 w-8 text-blue-600 animate-pulse" />
-          <h2 className="text-3xl font-bold text-gray-900">Finding Your Opportunities</h2>
+          <h2 className="text-3xl font-bold text-gray-900">
+            Finding Your Opportunities
+          </h2>
         </div>
         <p className="text-gray-600">
           Our AI is searching across thousands of scholarships and programs...
@@ -178,8 +195,8 @@ export function ProcessingStep({ searchMode }: ProcessingStepProps) {
                   index < currentStage
                     ? "bg-green-50 border border-green-200"
                     : index === currentStage
-                    ? "bg-blue-50 border border-blue-200"
-                    : "bg-gray-50 border border-gray-200"
+                      ? "bg-blue-50 border border-blue-200"
+                      : "bg-gray-50 border border-gray-200",
                 )}
               >
                 <div
@@ -188,8 +205,8 @@ export function ProcessingStep({ searchMode }: ProcessingStepProps) {
                     index < currentStage
                       ? "bg-green-500 text-white"
                       : index === currentStage
-                      ? "bg-blue-500 text-white"
-                      : "bg-gray-200 text-gray-500"
+                        ? "bg-blue-500 text-white"
+                        : "bg-gray-200 text-gray-500",
                   )}
                 >
                   {index < currentStage ? (
@@ -207,8 +224,8 @@ export function ProcessingStep({ searchMode }: ProcessingStepProps) {
                       index < currentStage
                         ? "text-green-700"
                         : index === currentStage
-                        ? "text-blue-700"
-                        : "text-gray-500"
+                          ? "text-blue-700"
+                          : "text-gray-500",
                     )}
                   >
                     {stage.name}
@@ -216,10 +233,14 @@ export function ProcessingStep({ searchMode }: ProcessingStepProps) {
                   <p className="text-sm text-gray-500">{stage.description}</p>
                 </div>
                 {index < currentStage && (
-                  <span className="text-sm text-green-600 font-medium">Complete</span>
+                  <span className="text-sm text-green-600 font-medium">
+                    Complete
+                  </span>
                 )}
                 {index === currentStage && (
-                  <span className="text-sm text-blue-600 font-medium">In Progress</span>
+                  <span className="text-sm text-blue-600 font-medium">
+                    In Progress
+                  </span>
                 )}
               </div>
             ))}
@@ -247,7 +268,7 @@ export function ProcessingStep({ searchMode }: ProcessingStepProps) {
                   "text-sm transition-opacity duration-500",
                   index === aiThoughts.length - 1
                     ? "text-purple-800 font-medium"
-                    : "text-gray-600"
+                    : "text-gray-600",
                 )}
               >
                 {thought}
@@ -266,8 +287,9 @@ export function ProcessingStep({ searchMode }: ProcessingStepProps) {
           <div className="text-center text-sm text-gray-600">
             <p className="font-medium mb-2">💡 Did you know?</p>
             <p>
-              ScholarKey AI searches across 50,000+ scholarship opportunities and 
-              10,000+ academic programs worldwide to find the best matches for your profile.
+              ScholarKey AI searches across 50,000+ scholarship opportunities
+              and 10,000+ academic programs worldwide to find the best matches
+              for your profile.
             </p>
           </div>
         </CardContent>

@@ -2,9 +2,22 @@
 
 import { useCallback, useState } from "react";
 import { useDropzone } from "react-dropzone";
-import { Upload, FileText, CheckCircle, AlertCircle, Loader2, Sparkles } from "lucide-react";
+import {
+  Upload,
+  FileText,
+  CheckCircle,
+  AlertCircle,
+  Loader2,
+  Sparkles,
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { cn } from "@/lib/utils";
 import { api } from "@/lib/api";
@@ -14,7 +27,13 @@ interface OnboardingStepProps {
   onComplete: (profile: StudentProfile, hedera: HederaResponse | null) => void;
 }
 
-type UploadStatus = "idle" | "uploading" | "parsing" | "verifying" | "complete" | "error";
+type UploadStatus =
+  | "idle"
+  | "uploading"
+  | "parsing"
+  | "verifying"
+  | "complete"
+  | "error";
 
 interface AIThought {
   message: string;
@@ -46,7 +65,8 @@ export function OnboardingStep({ onComplete }: OnboardingStepProps) {
     onDrop,
     accept: {
       "application/pdf": [".pdf"],
-      "application/vnd.openxmlformats-officedocument.wordprocessingml.document": [".docx"],
+      "application/vnd.openxmlformats-officedocument.wordprocessingml.document":
+        [".docx"],
     },
     maxFiles: 1,
     maxSize: 10 * 1024 * 1024, // 10MB
@@ -64,7 +84,7 @@ export function OnboardingStep({ onComplete }: OnboardingStepProps) {
       setStatus("parsing");
       setProgress(30);
       addThought("🔍 Reading your CV document...");
-      
+
       setTimeout(() => {
         addThought("📝 Extracting educational background...");
       }, 1000);
@@ -94,12 +114,11 @@ export function OnboardingStep({ onComplete }: OnboardingStepProps) {
       }
 
       setStatus("complete");
-      
+
       // Wait a moment to show completion status
       setTimeout(() => {
         onComplete(parseResult.profile, hederaResult);
       }, 1500);
-
     } catch (err) {
       setStatus("error");
       setError(err instanceof Error ? err.message : "Failed to process CV");
@@ -119,9 +138,12 @@ export function OnboardingStep({ onComplete }: OnboardingStepProps) {
   return (
     <div className="max-w-2xl mx-auto space-y-6">
       <div className="text-center space-y-2">
-        <h2 className="text-3xl font-bold text-gray-900">Welcome to ScholarKey AI</h2>
+        <h2 className="text-3xl font-bold text-gray-900">
+          Welcome to ScholarKey AI
+        </h2>
         <p className="text-gray-600">
-          Upload your CV and let our AI help you find the perfect scholarships and programs
+          Upload your CV and let our AI help you find the perfect scholarships
+          and programs
         </p>
       </div>
 
@@ -144,8 +166,8 @@ export function OnboardingStep({ onComplete }: OnboardingStepProps) {
               isDragActive
                 ? "border-blue-500 bg-blue-50"
                 : file
-                ? "border-green-500 bg-green-50"
-                : "border-gray-300 hover:border-gray-400"
+                  ? "border-green-500 bg-green-50"
+                  : "border-gray-300 hover:border-gray-400",
             )}
           >
             <input {...getInputProps()} />
@@ -168,7 +190,9 @@ export function OnboardingStep({ onComplete }: OnboardingStepProps) {
                 <p className="font-medium text-gray-600">
                   Drag & drop your CV here, or click to browse
                 </p>
-                <p className="text-sm text-gray-500">PDF or DOCX files accepted</p>
+                <p className="text-sm text-gray-500">
+                  PDF or DOCX files accepted
+                </p>
               </div>
             )}
           </div>
@@ -177,11 +201,16 @@ export function OnboardingStep({ onComplete }: OnboardingStepProps) {
           {status !== "idle" && (
             <div className="space-y-3">
               <div className="flex items-center justify-between text-sm">
-                <span className={cn(
-                  "flex items-center gap-2",
-                  status === "error" ? "text-red-600" : 
-                  status === "complete" ? "text-green-600" : "text-blue-600"
-                )}>
+                <span
+                  className={cn(
+                    "flex items-center gap-2",
+                    status === "error"
+                      ? "text-red-600"
+                      : status === "complete"
+                        ? "text-green-600"
+                        : "text-blue-600",
+                  )}
+                >
                   {status === "complete" ? (
                     <CheckCircle className="h-4 w-4" />
                   ) : status === "error" ? (
@@ -203,7 +232,9 @@ export function OnboardingStep({ onComplete }: OnboardingStepProps) {
               <CardContent className="pt-4">
                 <div className="flex items-center gap-2 mb-3">
                   <Sparkles className="h-4 w-4 text-purple-600" />
-                  <span className="text-sm font-medium text-purple-700">AI Analysis</span>
+                  <span className="text-sm font-medium text-purple-700">
+                    AI Analysis
+                  </span>
                 </div>
                 <div className="space-y-2 max-h-40 overflow-y-auto">
                   {aiThoughts.map((thought, index) => (
@@ -213,7 +244,7 @@ export function OnboardingStep({ onComplete }: OnboardingStepProps) {
                         "text-sm transition-opacity duration-300",
                         index === aiThoughts.length - 1
                           ? "text-gray-800 font-medium"
-                          : "text-gray-600"
+                          : "text-gray-600",
                       )}
                     >
                       {thought.message}
@@ -279,7 +310,9 @@ export function OnboardingStep({ onComplete }: OnboardingStepProps) {
               </div>
               <div>
                 <span className="text-gray-500">Education:</span>
-                <p className="font-medium">{profile.education_level || "N/A"}</p>
+                <p className="font-medium">
+                  {profile.education_level || "N/A"}
+                </p>
               </div>
               <div>
                 <span className="text-gray-500">Field:</span>

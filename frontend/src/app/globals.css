@@ -60,7 +60,8 @@
 
 /* Custom animations */
 @keyframes pulse-glow {
-  0%, 100% {
+  0%,
+  100% {
     box-shadow: 0 0 5px rgba(59, 130, 246, 0.5);
   }
   50% {
@@ -83,7 +84,7 @@
 }
 
 .progress-shine::after {
-  content: '';
+  content: "";
   position: absolute;
   top: 0;
   left: 0;
@@ -96,4 +97,43 @@
     transparent
   );
   animation: progress-shine 1.5s ease-in-out infinite;
+}
+
+/* Custom prose/markdown styles */
+.prose {
+  @apply text-foreground;
+}
+
+.prose strong {
+  @apply font-bold text-foreground;
+}
+
+.prose ul {
+  @apply list-disc pl-5;
+}
+
+.prose ol {
+  @apply list-decimal pl-5;
+}
+
+.prose li {
+  @apply my-1;
+}
+
+.prose h1,
+.prose h2,
+.prose h3 {
+  @apply font-bold text-foreground;
+}
+
+.prose p {
+  @apply text-foreground;
+}
+
+.prose code {
+  @apply text-foreground;
+}
+
+.prose a {
+  @apply text-primary;
 }
