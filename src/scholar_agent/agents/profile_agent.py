@@ -1,8 +1,9 @@
 """Profile analysis agent using LangGraph."""
 
 import logging
-from typing import Annotated, TypedDict
+from typing import Annotated, Any, TypedDict
 
+from langchain_core.messages import AnyMessage
 from langgraph.graph import END, StateGraph
 from langgraph.graph.message import add_messages
 
@@ -15,10 +16,10 @@ logger = logging.getLogger(__name__)
 class ProfileState(TypedDict):
     """State for profile analysis workflow."""
 
-    messages: Annotated[list, add_messages]
+    messages: Annotated[list[AnyMessage], add_messages]
     cv_text: str | None
     chat_input: str | None
-    extracted_data: dict
+    extracted_data: dict[str, Any]
     profile: StudentProfile | None
     target_country: str
     desired_field: str
@@ -79,15 +80,19 @@ class ProfileAgent:
 
         # Determine input type
         if state.get("cv_text"):
-            state["messages"].append({
-                "role": "system",
-                "content": "Analyzing CV document...",
-            })
+            state["messages"].append(
+                {
+                    "role": "system",
+                    "content": "Analyzing CV document...",
+                }
+            )
         elif state.get("chat_input"):
-            state["messages"].append({
-                "role": "system",
-                "content": "Processing user input...",
-            })
+            state["messages"].append(
+                {
+                    "role": "system",
+                    "content": "Processing user input...",
+                }
+            )
 
         return state
 
@@ -109,25 +114,30 @@ class ProfileAgent:
 
         extracted = {}
 
-        if state.get("cv_text"):
+        cv_text = state.get("cv_text")
+        chat_input = state.get("chat_input")
+
+        if cv_text:
             # Parse CV text with AI
             extracted = await cv_parser.parse_cv_with_ai(
-                state["cv_text"],
+                cv_text,
                 state.get("target_country", "USA"),
                 state.get("desired_field", ""),
             )
-        elif state.get("chat_input"):
+        elif chat_input:
             # Parse chat message
             extracted = await cv_parser.parse_chat_message(
-                state["chat_input"],
+                chat_input,
                 state.get("profile"),
             )
 
         state["extracted_data"] = extracted
-        state["messages"].append({
-            "role": "system",
-            "content": f"Extracted {len(extracted)} profile fields.",
-        })
+        state["messages"].append(
+            {
+                "role": "system",
+                "content": f"Extracted {len(extracted)} profile fields.",
+            }
+        )
 
         return state
 
@@ -156,15 +166,19 @@ class ProfileAgent:
         state["errors"] = errors
 
         if errors:
-            state["messages"].append({
-                "role": "system",
-                "content": f"Validation warnings: {', '.join(errors)}",
-            })
+            state["messages"].append(
+                {
+                    "role": "system",
+                    "content": f"Validation warnings: {', '.join(errors)}",
+                }
+            )
         else:
-            state["messages"].append({
-                "role": "system",
-                "content": "Profile validation successful.",
-            })
+            state["messages"].append(
+                {
+                    "role": "system",
+                    "content": "Profile validation successful.",
+                }
+            )
 
         return state
 
@@ -278,13 +292,14 @@ class ProfileAgent:
         return profile, messages
 
 
-# Singleton instance
-_profile_agent: ProfileAgent | None = None
+# Singleton instance stored in a dict to avoid global statement
+_state: dict[str, ProfileAgent | None] = {"agent": None}
 
 
 async def get_profile_agent() -> ProfileAgent:
     """Get or create the profile agent singleton."""
-    global _profile_agent
-    if _profile_agent is None:
-        _profile_agent = ProfileAgent()
-    return _profile_agent
+    agent = _state["agent"]
+    if agent is None:
+        agent = ProfileAgent()
+        _state["agent"] = agent
+    return agent

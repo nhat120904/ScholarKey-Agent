@@ -10,14 +10,20 @@ from scholar_agent.services.scholarship_search import (
     ScholarshipSearchService,
     get_scholarship_search_service,
 )
+from scholar_agent.services.session_manager import (
+    SessionManager,
+    get_session_manager,
+)
 
 __all__ = [
     "CVParserService",
     "ExcelExportService",
     "HederaService",
     "ScholarshipSearchService",
+    "SessionManager",
     "get_cv_parser_service",
     "get_excel_export_service",
     "get_hedera_service",
     "get_scholarship_search_service",
+    "get_session_manager",
 ]

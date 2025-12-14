@@ -55,7 +55,9 @@ class HederaService:
         Returns:
             Hexadecimal string of the SHA-256 hash.
         """
-        profile_data = profile.model_dump_json(exclude={"cv_hash", "hedera_tx_id", "hedera_topic_sequence"})
+        profile_data = profile.model_dump_json(
+            exclude={"cv_hash", "hedera_tx_id", "hedera_topic_sequence"}
+        )
         return hashlib.sha256(profile_data.encode()).hexdigest()
 
     async def submit_verification(
@@ -90,12 +92,8 @@ class HederaService:
         message_json = json.dumps(message)
 
         try:
-            # In production, this would use hedera-sdk-py:
-            # transaction = TopicMessageSubmitTransaction()
-            # transaction.setTopicId(self._topic_id)
-            # transaction.setMessage(message_json)
-            # response = await transaction.execute(self._client)
-            # receipt = await response.getReceipt(self._client)
+            # NOTE: In production, use hedera-sdk-py with TopicMessageSubmitTransaction
+            # to submit messages to HCS topics. For development/demo, we simulate.
 
             # For development/demo, simulate the response
             logger.info(f"Submitting verification to HCS: {message_json[:100]}...")
@@ -132,15 +130,17 @@ class HederaService:
         if not self._topic_id:
             return None
 
-        message = {
+        search_params_hash = hashlib.sha256(
+            json.dumps(search_params, sort_keys=True).encode()
+        ).hexdigest()
+        results_count = results_summary.get("total_results", 0)
+        _ = {
             "timestamp": datetime.utcnow().isoformat(),
             "session_id": session_id,
             "user_id": user_id,
             "type": "search_session",
-            "search_params_hash": hashlib.sha256(
-                json.dumps(search_params, sort_keys=True).encode()
-            ).hexdigest(),
-            "results_count": results_summary.get("total_results", 0),
+            "search_params_hash": search_params_hash,
+            "results_count": results_count,
         }
 
         try:
@@ -183,7 +183,7 @@ _hedera_service: HederaService | None = None
 
 async def get_hedera_service() -> HederaService:
     """Get or create the Hedera service singleton."""
-    global _hedera_service
+    global _hedera_service  # noqa: PLW0603
     if _hedera_service is None:
         _hedera_service = HederaService()
         await _hedera_service.initialize()

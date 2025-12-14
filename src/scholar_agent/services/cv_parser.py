@@ -4,6 +4,7 @@ import io
 import logging
 import re
 from pathlib import Path
+from typing import Any
 
 import anthropic
 from docx import Document as DocxDocument
@@ -67,7 +68,7 @@ class CVParserService:
         """
         try:
             file_stream = io.BytesIO(file_content)
-            text = pdf_extract_text(file_stream)
+            text: str = pdf_extract_text(file_stream)
             return text.strip()
         except Exception as e:
             logger.error(f"Failed to extract text from PDF: {e}")
@@ -113,9 +114,9 @@ class CVParserService:
     async def parse_cv_with_ai(
         self,
         cv_text: str,
-        target_country: str = "USA",
-        desired_field: str = "",
-    ) -> dict:
+        _target_country: str = "USA",
+        _desired_field: str = "",
+    ) -> dict[str, Any]:
         """Parse CV text using Claude AI.
 
         Args:
@@ -134,9 +135,7 @@ class CVParserService:
             message = client.messages.create(
                 model=self.settings.claude_model,
                 max_tokens=2000,
-                messages=[
-                    {"role": "user", "content": prompt}
-                ],
+                messages=[{"role": "user", "content": prompt}],
             )
 
             response_text = message.content[0].text
@@ -146,7 +145,7 @@ class CVParserService:
             if json_match:
                 import json
 
-                parsed_data = json.loads(json_match.group())
+                parsed_data: dict[str, Any] = json.loads(json_match.group())
                 return parsed_data
 
             logger.error(f"No valid JSON found in response: {response_text[:200]}")
@@ -180,7 +179,9 @@ class CVParserService:
         cv_text = self.extract_text(file_content, filename)
 
         # Parse with AI
-        parsed_data = await self.parse_cv_with_ai(cv_text, target_country, desired_field)
+        parsed_data = await self.parse_cv_with_ai(
+            cv_text, target_country, desired_field
+        )
 
         # Compute CV hash
         hedera_service = await get_hedera_service()
@@ -205,13 +206,15 @@ class CVParserService:
 
         # Extract GPA with proper fallback (handle None values)
         gpa_value = parsed_data.get("gpa")
-        if gpa_value is None or not isinstance(gpa_value, (int, float)):
+        if gpa_value is None or not isinstance(gpa_value, int | float):
             gpa_value = 0.0  # Default GPA if not found
         else:
             gpa_value = float(gpa_value)
             # Ensure GPA is within valid range
             if gpa_value > 4.0:
-                gpa_value = gpa_value / 10.0 if gpa_value <= 40.0 else 4.0  # Handle 10-point scale
+                gpa_value = (
+                    gpa_value / 10.0 if gpa_value <= 40.0 else 4.0
+                )  # Handle 10-point scale
             gpa_value = min(max(gpa_value, 0.0), 4.0)
 
         # Create profile
@@ -252,7 +255,7 @@ class CVParserService:
         self,
         message: str,
         existing_profile: StudentProfile | None = None,
-    ) -> dict:
+    ) -> dict[str, Any]:
         """Parse natural language input to extract profile data.
 
         Args:
@@ -290,7 +293,8 @@ JSON (only include mentioned fields):"""
 
             json_match = re.search(r"\{[\s\S]*\}", response_text)
             if json_match:
-                return json.loads(json_match.group())
+                result: dict[str, Any] = json.loads(json_match.group())
+                return result
             return {}
 
         except Exception as e:
@@ -298,13 +302,14 @@ JSON (only include mentioned fields):"""
             return {}
 
 
-# Singleton instance
-_cv_parser_service: CVParserService | None = None
+# Singleton instance stored in a dict to avoid global statement
+_state: dict[str, CVParserService | None] = {"service": None}
 
 
 async def get_cv_parser_service() -> CVParserService:
     """Get or create the CV parser service singleton."""
-    global _cv_parser_service
-    if _cv_parser_service is None:
-        _cv_parser_service = CVParserService()
-    return _cv_parser_service
+    service = _state["service"]
+    if service is None:
+        service = CVParserService()
+        _state["service"] = service
+    return service

@@ -65,10 +65,14 @@ class StudentProfile(BaseModel):
         description="Desired field with focus (e.g., 'Computer Science with focus on AI/ML')",
     )
     publications: int = Field(0, ge=0, description="Number of publications")
-    work_experience_years: float = Field(0, ge=0, description="Years of work experience")
+    work_experience_years: float = Field(
+        0, ge=0, description="Years of work experience"
+    )
     skills: list[str] = Field(default_factory=list)
     target_country: str = Field(default="", description="Target country for study")
-    level: StudyLevel = Field(default=StudyLevel.MASTER, description="Study level (bachelor/master/phd)")
+    level: StudyLevel = Field(
+        default=StudyLevel.MASTER, description="Study level (bachelor/master/phd)"
+    )
     nationality: str | None = None
     age: int | None = Field(None, ge=16, le=100)
 
@@ -159,7 +163,9 @@ class Scholarship(BaseModel):
     selection_procedure: list[SelectionStage] = Field(default_factory=list)
     required_documents: list[str] = Field(default_factory=list)
     eligible_programs: list[EligibleProgram] = Field(default_factory=list)
-    eligibility_criteria: EligibilityCriteria = Field(default_factory=EligibilityCriteria)
+    eligibility_criteria: EligibilityCriteria = Field(
+        default_factory=EligibilityCriteria
+    )
     url: HttpUrl | str | None = None
     description: str | None = None
     last_crawled: datetime | None = None
@@ -179,7 +185,9 @@ class ProgramRequirements(BaseModel):
 
     min_gpa: float | None = Field(None, ge=0, le=4.0)
     prerequisites: list[str] = Field(default_factory=list)
-    language_scores: dict[str, float] = Field(default_factory=dict)  # e.g., {"IELTS": 6.5}
+    language_scores: dict[str, float] = Field(
+        default_factory=dict
+    )  # e.g., {"IELTS": 6.5}
     other_requirements: list[str] = Field(default_factory=list)
 
 
@@ -303,3 +311,135 @@ class ChatResponse(BaseModel):
     session_id: UUID
     profile_updates: dict[str, Any] | None = None
     suggested_actions: list[str] = Field(default_factory=list)
+    agent: str | None = None  # Which agent generated this response
+
+
+# ============================================================================
+# Application Plan Models
+# ============================================================================
+
+
+class PrioritizedScholarship(BaseModel):
+    """Scholarship with priority ranking."""
+
+    scholarship: Scholarship
+    priority_rank: int = Field(ge=1, description="Priority rank (1 = highest)")
+    match_score: float = Field(
+        ge=0, le=100, description="Profile-scholarship match score"
+    )
+    urgency_score: float = Field(
+        ge=0, le=100, description="Based on deadline proximity"
+    )
+    overall_score: float = Field(ge=0, le=100, description="Combined priority score")
+    reasoning: str = ""
+
+
+class TimelineEvent(BaseModel):
+    """Event in the application timeline."""
+
+    event_id: UUID = Field(default_factory=uuid4)
+    date: datetime
+    event_type: str  # "deadline" | "milestone" | "reminder"
+    title: str
+    description: str = ""
+    scholarship_id: UUID | None = None
+    completed: bool = False
+
+
+class Milestone(BaseModel):
+    """Milestone in the application process."""
+
+    milestone_id: UUID = Field(default_factory=uuid4)
+    title: str
+    description: str = ""
+    due_date: datetime
+    tasks: list[str] = Field(default_factory=list)
+    scholarship_ids: list[UUID] = Field(default_factory=list)
+    status: str = "not_started"  # "not_started" | "in_progress" | "completed"
+
+
+class ApplicationPlan(BaseModel):
+    """Complete application plan."""
+
+    plan_id: UUID = Field(default_factory=uuid4)
+    user_id: UUID = Field(default_factory=uuid4)
+    profile: StudentProfile | None = None
+    prioritized_scholarships: list[PrioritizedScholarship] = Field(default_factory=list)
+    timeline: list[TimelineEvent] = Field(default_factory=list)
+    milestones: list[Milestone] = Field(default_factory=list)
+    created_at: datetime = Field(default_factory=datetime.now)
+    last_updated: datetime = Field(default_factory=datetime.now)
+    export_formats: list[str] = Field(default_factory=lambda: ["excel", "pdf"])
+
+
+class SearchQueryConfirmation(BaseModel):
+    """Search queries presented to user for confirmation."""
+
+    queries: list[dict[str, str]] = Field(default_factory=list)  # list of query dicts
+    profile_summary: str = ""  # Summary of profile used to generate queries
+
+
+class SessionResponse(BaseModel):
+    """Response from session creation or retrieval."""
+
+    session_id: str
+    user_id: str
+    title: str | None = None
+    profile: StudentProfile | None = None
+    hedera_info: dict[str, Any] | None = None
+    created_at: str
+    last_activity: str
+
+
+class UpdateSessionRequest(BaseModel):
+    """Request to update session properties."""
+
+    title: str | None = None
+
+
+class UpdateSessionResponse(BaseModel):
+    """Response from session update."""
+
+    session_id: str
+    title: str | None = None
+    message: str
+
+
+class SessionSummaryResponse(BaseModel):
+    """Summary of a session for list display."""
+
+    session_id: str
+    title: str
+    preview: str
+    last_activity: str
+    message_count: int
+    has_profile: bool
+    has_scholarships: bool
+
+
+class SessionListResponse(BaseModel):
+    """Response containing list of sessions."""
+
+    sessions: list[SessionSummaryResponse]
+    total_count: int
+
+
+class ConversationHistoryResponse(BaseModel):
+    """Response containing conversation history."""
+
+    session_id: str
+    messages: list[ChatMessage]
+    total_messages: int
+
+
+class University(BaseModel):
+    """University data model."""
+
+    university_id: UUID = Field(default_factory=uuid4)
+    name: str
+    country: str
+    city: str = ""
+    ranking: int | None = None
+    programs: list[UUID] = Field(default_factory=list)  # Program IDs
+    scholarships: list[UUID] = Field(default_factory=list)  # Scholarship IDs
+    url: HttpUrl | str | None = None

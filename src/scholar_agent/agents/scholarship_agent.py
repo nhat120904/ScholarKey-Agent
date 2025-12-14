@@ -3,6 +3,7 @@
 import logging
 from typing import Annotated, TypedDict
 
+from langchain_core.messages import AnyMessage
 from langgraph.graph import END, StateGraph
 from langgraph.graph.message import add_messages
 
@@ -21,7 +22,7 @@ logger = logging.getLogger(__name__)
 class SearchState(TypedDict):
     """State for scholarship search workflow."""
 
-    messages: Annotated[list, add_messages]
+    messages: Annotated[list[AnyMessage], add_messages]
     profile: StudentProfile
     search_mode: SearchMode
     school_name: str | None
@@ -97,10 +98,12 @@ class ScholarshipAgent:
         if state.get("program_name"):
             plan_msg += f" - {state['program_name']}"
 
-        state["messages"].append({
-            "role": "system",
-            "content": plan_msg,
-        })
+        state["messages"].append(
+            {
+                "role": "system",
+                "content": plan_msg,
+            }
+        )
 
         return state
 
@@ -134,10 +137,12 @@ class ScholarshipAgent:
         state["scholarships"] = response.scholarships
         state["programs"] = response.programs
 
-        state["messages"].append({
-            "role": "system",
-            "content": f"Found {len(response.scholarships)} potential scholarships",
-        })
+        state["messages"].append(
+            {
+                "role": "system",
+                "content": f"Found {len(response.scholarships)} potential scholarships",
+            }
+        )
 
         return state
 
@@ -161,10 +166,12 @@ class ScholarshipAgent:
             str(s.url) for s in state["scholarships"][:crawled_count] if s.url
         ]
 
-        state["messages"].append({
-            "role": "system",
-            "content": f"Analyzed details from {crawled_count} scholarship pages",
-        })
+        state["messages"].append(
+            {
+                "role": "system",
+                "content": f"Analyzed details from {crawled_count} scholarship pages",
+            }
+        )
 
         return state
 
@@ -185,10 +192,12 @@ class ScholarshipAgent:
 
         scored_count = sum(1 for s in state["scholarships"] if s.match_score)
 
-        state["messages"].append({
-            "role": "system",
-            "content": f"Calculated compatibility scores for {scored_count} scholarships",
-        })
+        state["messages"].append(
+            {
+                "role": "system",
+                "content": f"Calculated compatibility scores for {scored_count} scholarships",
+            }
+        )
 
         return state
 
@@ -230,10 +239,12 @@ class ScholarshipAgent:
             state["profile"].major,
         )
 
-        state["messages"].append({
-            "role": "system",
-            "content": f"Found {len(schools)} schools with matching programs",
-        })
+        state["messages"].append(
+            {
+                "role": "system",
+                "content": f"Found {len(schools)} schools with matching programs",
+            }
+        )
 
         return state
 
@@ -269,10 +280,12 @@ class ScholarshipAgent:
 
         state["hedera_tx_id"] = tx_id
 
-        state["messages"].append({
-            "role": "system",
-            "content": "Search session recorded to Hedera ledger",
-        })
+        state["messages"].append(
+            {
+                "role": "system",
+                "content": "Search session recorded to Hedera ledger",
+            }
+        )
 
         return state
 
@@ -333,13 +346,14 @@ class ScholarshipAgent:
         )
 
 
-# Singleton instance
-_scholarship_agent: ScholarshipAgent | None = None
+# Singleton instance stored in a dict to avoid global statement
+_state: dict[str, ScholarshipAgent | None] = {"agent": None}
 
 
 async def get_scholarship_agent() -> ScholarshipAgent:
     """Get or create the scholarship agent singleton."""
-    global _scholarship_agent
-    if _scholarship_agent is None:
-        _scholarship_agent = ScholarshipAgent()
-    return _scholarship_agent
+    agent = _state["agent"]
+    if agent is None:
+        agent = ScholarshipAgent()
+        _state["agent"] = agent
+    return agent

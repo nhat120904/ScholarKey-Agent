@@ -36,7 +36,9 @@ class Settings(BaseSettings):
     hedera_network: str = "testnet"
     hedera_account_id: str = Field(default="", description="Hedera account ID")
     hedera_private_key: str = Field(default="", description="Hedera private key")
-    hedera_topic_id: str = Field(default="", description="HCS topic ID for verification")
+    hedera_topic_id: str = Field(
+        default="", description="HCS topic ID for verification"
+    )
 
     # Database (optional, for caching crawled data)
     database_url: str = "sqlite:///./scholar_agent.db"

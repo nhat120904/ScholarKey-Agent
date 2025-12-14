@@ -90,7 +90,7 @@ class ScholarshipSearchService:
         self,
         query: str,
         max_results: int = 10,
-    ) -> list[dict]:
+    ) -> list[dict[str, str]]:
         """Search the web using Tavily.
 
         Args:
@@ -110,13 +110,14 @@ class ScholarshipSearchService:
                 include_raw_content=True,
             )
 
-            return response.get("results", [])
+            results: list[dict[str, str]] = response.get("results", [])
+            return results
 
         except Exception as e:
             logger.error(f"Tavily search failed: {e}")
             return []
 
-    def _calculate_match_score(
+    def _calculate_match_score(  # noqa: PLR0912
         self,
         profile: StudentProfile,
         criteria: EligibilityCriteria,
@@ -138,7 +139,9 @@ class ScholarshipSearchService:
             score -= 30
             analysis_parts.append(f"GPA {profile.gpa} below minimum {criteria.min_gpa}")
         elif criteria.min_gpa and profile.gpa >= criteria.min_gpa:
-            analysis_parts.append(f"✓ GPA meets requirement ({profile.gpa} >= {criteria.min_gpa})")
+            analysis_parts.append(
+                f"✓ GPA meets requirement ({profile.gpa} >= {criteria.min_gpa})"
+            )
 
         # IELTS check
         if criteria.min_ielts and profile.test_scores.ielts:
@@ -163,13 +166,18 @@ class ScholarshipSearchService:
         # Age check
         if criteria.max_age and profile.age and profile.age > criteria.max_age:
             score -= 50  # Hard requirement
-            analysis_parts.append(f"Age {profile.age} exceeds maximum {criteria.max_age}")
+            analysis_parts.append(
+                f"Age {profile.age} exceeds maximum {criteria.max_age}"
+            )
 
         # Nationality check
-        if criteria.excluded_nationalities and profile.nationality:
-            if profile.nationality in criteria.excluded_nationalities:
-                score = 0
-                analysis_parts.append(f"Nationality {profile.nationality} is excluded")
+        if (
+            criteria.excluded_nationalities
+            and profile.nationality
+            and profile.nationality in criteria.excluded_nationalities
+        ):
+            score = 0
+            analysis_parts.append(f"Nationality {profile.nationality} is excluded")
 
         # Background check
         if criteria.required_background:
@@ -190,7 +198,9 @@ class ScholarshipSearchService:
         # Publications bonus
         if profile.publications > 0:
             score = min(100, score + profile.publications * 2)
-            analysis_parts.append(f"✓ {profile.publications} publication(s) strengthen application")
+            analysis_parts.append(
+                f"✓ {profile.publications} publication(s) strengthen application"
+            )
 
         # Work experience bonus
         if profile.work_experience_years > 0:
@@ -206,7 +216,7 @@ class ScholarshipSearchService:
 
     def _parse_scholarship_from_search_result(
         self,
-        result: dict,
+        result: dict[str, str],
         profile: StudentProfile,
     ) -> Scholarship | None:
         """Parse a search result into a Scholarship object.
@@ -297,17 +307,21 @@ class ScholarshipSearchService:
         # Parse results into scholarships
         for result in results:
             scholarship = self._parse_scholarship_from_search_result(result, profile)
-            if scholarship:
-                # Apply filters
-                if scholarship.match_score and scholarship.match_score >= request.min_match_score:
-                    scholarships.append(scholarship)
+            if (
+                scholarship
+                and scholarship.match_score
+                and scholarship.match_score >= request.min_match_score
+            ):
+                scholarships.append(scholarship)
 
         # Sort by match score
         scholarships.sort(key=lambda s: s.match_score or 0, reverse=True)
 
         # If searching by program, also search for that specific program
         if request.search_mode == SearchMode.BY_PROGRAM and request.school_name:
-            program_query = f"{request.school_name} {request.program_name} program requirements"
+            program_query = (
+                f"{request.school_name} {request.program_name} program requirements"
+            )
             program_results = await self.search_web(program_query, max_results=5)
 
             for result in program_results:
@@ -350,7 +364,7 @@ class ScholarshipSearchService:
 
     def _parse_program_from_search_result(
         self,
-        result: dict,
+        result: dict[str, str],
         profile: StudentProfile,
         school_name: str,
     ) -> Program | None:
@@ -438,7 +452,7 @@ class ScholarshipSearchService:
         self,
         country: str,
         field: str | None = None,
-    ) -> list[dict]:
+    ) -> list[dict[str, str]]:
         """Get list of schools for a country and field.
 
         Args:
@@ -456,11 +470,13 @@ class ScholarshipSearchService:
 
         schools = []
         for result in results:
-            schools.append({
-                "name": result.get("title", ""),
-                "url": result.get("url", ""),
-                "description": result.get("content", "")[:200],
-            })
+            schools.append(
+                {
+                    "name": result.get("title", ""),
+                    "url": result.get("url", ""),
+                    "description": result.get("content", "")[:200],
+                }
+            )
 
         return schools
 
@@ -471,7 +487,7 @@ _scholarship_search_service: ScholarshipSearchService | None = None
 
 async def get_scholarship_search_service() -> ScholarshipSearchService:
     """Get or create the scholarship search service singleton."""
-    global _scholarship_search_service
+    global _scholarship_search_service  # noqa: PLW0603
     if _scholarship_search_service is None:
         _scholarship_search_service = ScholarshipSearchService()
     return _scholarship_search_service

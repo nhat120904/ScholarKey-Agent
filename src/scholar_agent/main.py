@@ -22,11 +22,11 @@ logger = logging.getLogger(__name__)
 
 
 @asynccontextmanager
-async def lifespan(app: FastAPI) -> AsyncGenerator[None]:
+async def lifespan(_app: FastAPI) -> AsyncGenerator[None]:
     """Application lifespan manager.
 
     Args:
-        app: FastAPI application instance.
+        _app: FastAPI application instance.
 
     Yields:
         None
@@ -81,7 +81,9 @@ def create_app() -> FastAPI:
 
     # Add global exception handler for detailed error logging
     @app.exception_handler(Exception)
-    async def global_exception_handler(request: Request, exc: Exception) -> JSONResponse:
+    async def global_exception_handler(
+        request: Request, exc: Exception
+    ) -> JSONResponse:
         """Handle all unhandled exceptions with detailed logging."""
         error_detail = {
             "error": str(exc),
@@ -115,13 +117,17 @@ def main() -> None:
     """Run the main application."""
     settings = get_settings()
 
-    logger.info(f"Starting {settings.app_name} on {settings.api_host}:{settings.api_port}")
+    logger.info(
+        f"Starting {settings.app_name} on {settings.api_host}:{settings.api_port}"
+    )
 
     uvicorn.run(
         "scholar_agent.main:app",
         host=settings.api_host,
         port=settings.api_port,
         reload=settings.debug,
+        reload_dirs=["src/scholar_agent"] if settings.debug else None,
+        reload_excludes=["frontend", "node_modules", "*.pyc", "__pycache__"],
         log_level="info",
     )
 

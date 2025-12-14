@@ -32,8 +32,8 @@ class ExcelExportService:
     def _scholarship_to_row(
         self,
         scholarship: Scholarship,
-        profile: StudentProfile | None = None,
-    ) -> dict:
+        _profile: StudentProfile | None = None,
+    ) -> dict[str, str | float | int]:
         """Convert a scholarship to a row dictionary.
 
         Args:
@@ -80,20 +80,24 @@ class ExcelExportService:
             "Country": scholarship.country,
             "Value": value_str,
             "Deadline": deadlines_str,
-            "Match Score (%)": f"{scholarship.match_score:.1f}" if scholarship.match_score else "N/A",
+            "Match Score (%)": f"{scholarship.match_score:.1f}"
+            if scholarship.match_score
+            else "N/A",
             "Match Analysis": scholarship.match_analysis or "",
             "Required Documents": documents_str,
             "Selection Procedure": procedure_str,
             "Eligible Programs": programs_str,
             "Apply Link": str(scholarship.url) if scholarship.url else "",
-            "Description": scholarship.description[:200] if scholarship.description else "",
+            "Description": scholarship.description[:200]
+            if scholarship.description
+            else "",
         }
 
     def _program_to_row(
         self,
         program: Program,
-        profile: StudentProfile | None = None,
-    ) -> dict:
+        profile: StudentProfile | None = None,  # noqa: ARG002
+    ) -> dict[str, str | float | int]:
         """Convert a program to a row dictionary.
 
         Args:
@@ -123,15 +127,21 @@ class ExcelExportService:
             "Field": program.field,
             "Focus Areas": focus_str,
             "Duration (Years)": program.duration_years or "N/A",
-            "Field Alignment (%)": f"{program.field_alignment_score:.1f}" if program.field_alignment_score else "N/A",
-            "Profile Match (%)": f"{program.profile_match_score:.1f}" if program.profile_match_score else "N/A",
+            "Field Alignment (%)": f"{program.field_alignment_score:.1f}"
+            if program.field_alignment_score
+            else "N/A",
+            "Profile Match (%)": f"{program.profile_match_score:.1f}"
+            if program.profile_match_score
+            else "N/A",
             "Requirements": requirements_str,
             "Available Scholarships": len(program.available_scholarships),
             "Program Link": str(program.url) if program.url else "",
             "Description": program.description[:200] if program.description else "",
         }
 
-    def _profile_to_dict(self, profile: StudentProfile) -> dict:
+    def _profile_to_dict(
+        self, profile: StudentProfile
+    ) -> dict[str, str | float | int | None]:
         """Convert a student profile to a summary dictionary.
 
         Args:
@@ -195,9 +205,9 @@ class ExcelExportService:
                         scholarships_df[col].astype(str).map(len).max(),
                         len(col),
                     )
-                    worksheet.column_dimensions[
-                        chr(65 + idx)
-                    ].width = min(max_length + 2, 50)
+                    worksheet.column_dimensions[chr(65 + idx)].width = min(
+                        max_length + 2, 50
+                    )
 
             # Programs sheet
             if request.include_programs and request.programs:
@@ -214,9 +224,9 @@ class ExcelExportService:
                         programs_df[col].astype(str).map(len).max(),
                         len(col),
                     )
-                    worksheet.column_dimensions[
-                        chr(65 + idx)
-                    ].width = min(max_length + 2, 50)
+                    worksheet.column_dimensions[chr(65 + idx)].width = min(
+                        max_length + 2, 50
+                    )
 
             # Combined report sheet
             if request.include_combined and request.scholarships:
@@ -236,7 +246,7 @@ class ExcelExportService:
 
                     # Add eligible programs under scholarship
                     for program in scholarship.eligible_programs:
-                        program_row = {
+                        program_row: dict[str, str | float | int] = {
                             "Type": "  └─ Program",
                             "Name": program.program_name,
                             "Provider/School": program.school,
@@ -278,7 +288,7 @@ class ExcelExportService:
         file_bytes, filename = self.export_to_excel(request)
         filepath = self.export_dir / filename
 
-        with open(filepath, "wb") as f:
+        with filepath.open("wb") as f:
             f.write(file_bytes)
 
         logger.info(f"Exported to {filepath}")
@@ -291,7 +301,7 @@ _excel_export_service: ExcelExportService | None = None
 
 def get_excel_export_service() -> ExcelExportService:
     """Get or create the Excel export service singleton."""
-    global _excel_export_service
+    global _excel_export_service  # noqa: PLW0603
     if _excel_export_service is None:
         _excel_export_service = ExcelExportService()
     return _excel_export_service
